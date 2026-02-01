@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Will You Be My Valentine?</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffb6c1, #ffd1dc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* CARD */ 
+.card {
+    position: relative;
+    width: 480px;
+    max-height: 90vh;          /* ✅ FIX */
+    height: auto;             /* ✅ FIX */
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    text-align: center;
+    padding: 40px 30px;
+    overflow-y: auto;         /* ✅ FIX */
+}
+
+/* ICON */
+.icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* BUTTON AREA */
+.buttons {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* BUTTONS */
+button {
+    padding: 12px 28px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    transition: 0.2s ease;
+}
+
+/* YES */
+#yesBtn {
+    background: #ff4d6d;
+    color: #fff;
+    cursor: pointer;
+    margin-left: -41%;
+}
+
+#yesBtn:hover {
+    transform: scale(1.08);
+}
+
+/* NO */
+#noBtn {
+    position: absolute;
+    left: 260px;
+    top: 80px;
+    background: #ddd;
+    cursor: not-allowed;
+    outline: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: none;
+    transition: left 0.15s ease, top 0.15s ease;
+}
+
+/* CELEBRATION */
+.celebration {
+    display: none;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.celebration img {
+    width: 200px;
+    border-radius: 14px;
+}
+
+/* ADMIN PANEL */
+.admin {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+}
+
+.admin input {
+    width: 100%;               /* ✅ FIX */
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.admin button {
+    width: 100%;               /* ✅ FIX */
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<!-- ADMIN PANEL -->
+<div class="admin" id="admin">
+    <h2>Admin Panel</h2>
+
+    <input id="adminName" placeholder="Default Name">
+    <input id="adminProposal" placeholder="Default Proposal text">
+    <input id="adminCelebrate" placeholder="Default Celebration text">
+    <input id="adminImage" placeholder="Default Image / GIF path">
+
+    <button onclick="saveAdmin()">Save Defaults</button>
+
+    <hr>
+
+    <h3>Generate Personal Link</h3>
+
+    <input id="genName" placeholder="Person Name">
+    <input id="genImage" placeholder="Person Image / GIF path">
+
+    <button onclick="generateLink()">Generate Link</button>
+
+    <input id="generatedLink" readonly placeholder="Generated link will appear here">
+</div>
+
+<!-- USER VIEW -->
+<div class="question" id="question">
+    <div class="icon">🐱❤️</div>
+    <h1 id="nameText"></h1>
+    <h2 id="proposalText"></h2>
+
+    <div class="buttons" id="buttons">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn">No</button>
+    </div>
+</div>
+
+<div class="celebration" id="celebration">
+    <h1 id="celebrateText"></h1>
+    <img id="celebrateImg">
+</div>
+
+</div>
+
+<script>
+/* HELPERS */
+function getParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
+}
+
+/* DEFAULT DATA */
+const defaultData = {
+    name: "Taslima Nasrin",
+    proposal: "will you be my valentine..❤️?",
+    celebration: "YAY! That YES felt just right 💘 🎉",
+    image: "assets/Taslima.png"
+};
+
+/* LOAD STORED DEFAULTS */
+const stored = JSON.parse(localStorage.getItem("valentineData")) || {};
+
+/* FINAL DATA (URL > ADMIN > DEFAULT) */
+const data = {
+    name: getParam("name") || stored.name || defaultData.name,
+    proposal: stored.proposal || defaultData.proposal,
+    celebration: stored.celebration || defaultData.celebration,
+    image: getParam("img") || stored.image || defaultData.image
+};
+
+/* ROUTING */
+const isAdmin = new URLSearchParams(window.location.search).get("admin");
+
+if (isAdmin) {
+    admin.style.display = "flex";
+    question.style.display = "none";
+
+    adminName.value = stored.name || defaultData.name;
+    adminProposal.value = stored.proposal || defaultData.proposal;
+    adminCelebrate.value = stored.celebration || defaultData.celebration;
+    adminImage.value = stored.image || defaultData.image;
+} else {
+    nameText.innerText = `Hey ${data.name}...!`;
+    proposalText.innerText = data.proposal;
+    celebrateText.innerText = data.celebration;
+    celebrateImg.src = data.image;
+}
+
+/* SAVE DEFAULTS */
+function saveAdmin() {
+    localStorage.setItem("valentineData", JSON.stringify({
+        name: adminName.value,
+        proposal: adminProposal.value,
+        celebration: adminCelebrate.value,
+        image: adminImage.value
+    }));
+    alert("Default values saved");
+}
+
+/* GENERATE PERSONAL LINK */
+function generateLink() {
+    const name = encodeURIComponent(genName.value.trim());
+    const img = encodeURIComponent(genImage.value.trim());
+
+    if (!name || !img) {
+        alert("Enter name and image");
+        return;
+    }
+
+    const base = window.location.origin + window.location.pathname;
+    generatedLink.value = `${base}?name=${name}&img=${img}`;
+    generatedLink.select();   /* ✅ UX FIX */
+}
+
+/* NO BUTTON MOVEMENT */
+function moveNoButton() {
+    const maxX = buttons.clientWidth - noBtn.clientWidth;
+    const maxY = buttons.clientHeight - noBtn.clientHeight;
+    noBtn.style.left = Math.random() * maxX + "px";
+    noBtn.style.top = Math.random() * maxY + "px";
+}
+
+noBtn.addEventListener("mouseenter", moveNoButton);
+noBtn.addEventListener("touchstart", e => {
+    e.preventDefault();
+    moveNoButton();
+});
+noBtn.addEventListener("pointerdown", moveNoButton);
+window.addEventListener("resize", moveNoButton);
+
+/* YES */
+yesBtn.addEventListener("click", () => {
+    question.style.display = "none";
+    celebration.style.display = "flex";
+});
+</script>
+
+</body>
+</html>
